@@ -25,17 +25,12 @@ class HomeScreen extends StatelessWidget {
             bottom: false,
             left: false,
             right: false,
-            child: Image.asset(
-              'assets/images/onemap.png', 
-              fit: BoxFit.cover, 
-            ),
+            child: Image.asset('assets/images/onemap.png', fit: BoxFit.cover),
           ),
         ),
-        
+
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(30),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
         ),
       ),
       body: SingleChildScrollView(
@@ -44,11 +39,19 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(context, title: 'Peta', actionText: 'Tampilan Penuh'),
+              _buildSectionHeader(
+                context,
+                title: 'Peta',
+                actionText: 'Tampilan Penuh',
+              ),
               const SizedBox(height: 2),
               _buildMapPreview(),
               const SizedBox(height: 5),
-              _buildSectionHeader(context, title: 'Tematik', actionText: 'Semua Menu'),
+              _buildSectionHeader(
+                context,
+                title: 'Tematik',
+                actionText: 'Semua Menu',
+              ),
               const SizedBox(height: 5),
               const TematikMenuGrid(),
               const SizedBox(height: 10),
@@ -59,7 +62,11 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, {required String title, required String actionText}) {
+  Widget _buildSectionHeader(
+    BuildContext context, {
+    required String title,
+    required String actionText,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -75,7 +82,11 @@ class HomeScreen extends StatelessWidget {
           },
           child: Text(
             actionText,
-            style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],
@@ -93,14 +104,16 @@ class HomeScreen extends StatelessWidget {
           options: const MapOptions(
             initialCenter: LatLng(-3.317, 114.590),
             initialZoom: 9.0,
-            interactionOptions: InteractionOptions(
-              flags: InteractiveFlag.none,
-            ),
+            interactionOptions: InteractionOptions(flags: InteractiveFlag.none),
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.example.onelandscape',
+               urlTemplate:
+                'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}{r}.png?key={apiKey}',
+            additionalOptions: {
+              'apiKey':
+                  'TIHbKh1ipYKEv5heVCkc', // <-- Ganti dengan key yang tadi disalin
+            },
             ),
           ],
         ),
