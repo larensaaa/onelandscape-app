@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 // Data model untuk setiap item menu
 class TematikMenuItem {
   final String title;
-  final IconData icon;
+  final String iconAsset;
 
-  TematikMenuItem({required this.title, required this.icon});
+  TematikMenuItem({required this.title, required this.iconAsset});
 }
 
 class TematikMenuGrid extends StatelessWidget {
@@ -16,12 +16,30 @@ class TematikMenuGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     // 2. Gunakan data model untuk daftar menu yang lebih terstruktur
     final List<TematikMenuItem> menuItems = [
-      TematikMenuItem(title: 'Bencana', icon: Icons.dangerous_outlined),
-      TematikMenuItem(title: 'Lingkungan', icon: Icons.eco_outlined),
-      TematikMenuItem(title: 'Infrastruktur', icon: Icons.domain_outlined),
-      TematikMenuItem(title: 'Hayati', icon: Icons.forest_outlined),
-      TematikMenuItem(title: 'Pariwisata', icon: Icons.tour_outlined),
-      TematikMenuItem(title: 'Potensi SDA', icon: Icons.landscape_outlined),
+      TematikMenuItem(
+        title: 'Bencana & Konservasi',
+        iconAsset: 'assets/images/disaster.png',
+      ),
+      TematikMenuItem(
+        title: 'Fisik & Lingkungan',
+        iconAsset: 'assets/images/environmentalism.png',
+      ),
+      TematikMenuItem(
+        title: 'Infrastruktur',
+        iconAsset: 'assets/images/infrastruktur.png',
+      ),
+      TematikMenuItem(
+        title: 'Keanekaragaman Hayati',
+        iconAsset: 'assets/images/wild-animals.png',
+      ),
+      TematikMenuItem(
+        title: 'Parawisata',
+        iconAsset: 'assets/images/travel.png',
+      ),
+      TematikMenuItem(
+        title: 'Potensi SDA   ',
+        iconAsset: 'assets/images/earth.png',
+      ),
     ];
 
     return GridView.builder(
@@ -29,7 +47,7 @@ class TematikMenuGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 50,
+        crossAxisSpacing: 10,
         mainAxisSpacing: 10,
         childAspectRatio: 1.0, // Membuat item menjadi persegi
       ),
@@ -49,20 +67,22 @@ class TematikMenuGrid extends StatelessWidget {
             children: [
               Expanded(
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                  ),
                   child: Center(
                     // 4. Gunakan ikon dari data model
-                    child: Icon(item.icon, color: Colors.grey[700], size: 30),
+                    child: Image.asset(
+                      item.iconAsset,
+                      fit: BoxFit
+                          .contain, // Memastikan gambar pas di dalam container
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 item.title,
-                style: const TextStyle(fontSize: 12),
+                style: const TextStyle(fontSize: 8.2, fontWeight: FontWeight.w600), 
                 textAlign: TextAlign.center,
+                
               ),
             ],
           ),

@@ -39,6 +39,7 @@ dependencies:
   flutter_map: ^8.1.1
   geolocator: ^14.0.2
   flutter_map_location_marker: ^10.1.0
+  geocoding: ^4.0.0
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +66,12 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
       - assets/images/onemap.png
+      - assets/images/disaster.png
+      - assets/images/earth.png
+      - assets/images/environmentalism.png
+      - assets/images/infrastruktur.png
+      - assets/images/travel.png
+      - assets/images/wild-animals.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

@@ -11,50 +11,47 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        toolbarHeight: 220,
-        // backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        flexibleSpace: ClipRRect(
-          borderRadius: const BorderRadius.vertical(
-            bottom: Radius.circular(12),
-          ),
-          child: SafeArea(
-            top: true,
-            bottom: false,
-            left: false,
-            right: false,
-            child: Image.asset('assets/images/onemap.png', fit: BoxFit.cover),
-          ),
-        ),
-
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(right: 16.0, left: 16.0, top: 1.0),
+      // AppBar dibuat lebih sederhana atau bisa dihapus jika tidak perlu
+      // Menggunakan SafeArea untuk menghindari intrusi sistem (misalnya status bar)
+      body: SafeArea(
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader(
-                context,
-                title: 'Peta',
-                actionText: 'Tampilan Penuh',
+              // Gambar dipindahkan ke sini
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: Image.asset('assets/images/onemap.png', fit: BoxFit.cover),
+                ),
               ),
-              const SizedBox(height: 2),
-              _buildMapPreview(),
-              const SizedBox(height: 5),
-              _buildSectionHeader(
-                context,
-                title: 'Tematik',
-                actionText: 'Semua Menu',
+              const SizedBox(height: 16), // Memberi sedikit jarak
+              // Konten lainnya dimulai di sini
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionHeader(
+                      context,
+                      title: 'Peta',
+                      actionText: 'Tampilan Penuh',
+                    ),
+                    const SizedBox(height: 2),
+                    _buildMapPreview(),
+                    const SizedBox(height: 5),
+                    _buildSectionHeader(
+                      context,
+                      title: 'Tematik',
+                      actionText: 'Semua Menu',
+                    ),
+                    const SizedBox(height: 5),
+                    const TematikMenuGrid(),
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
-              const SizedBox(height: 5),
-              const TematikMenuGrid(),
-              const SizedBox(height: 10),
             ],
           ),
         ),
@@ -72,7 +69,7 @@ class HomeScreen extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
         ),
         TextButton(
           onPressed: () {
@@ -82,7 +79,7 @@ class HomeScreen extends StatelessWidget {
           },
           child: Text(
             actionText,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 10,
               fontWeight: FontWeight.w500,
@@ -96,7 +93,8 @@ class HomeScreen extends StatelessWidget {
   Widget _buildMapPreview() {
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+      // Mengubah radius agar konsisten
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 4,
       child: SizedBox(
         height: 180,
@@ -108,12 +106,12 @@ class HomeScreen extends StatelessWidget {
           ),
           children: [
             TileLayer(
-               urlTemplate:
-                'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}{r}.png?key={apiKey}',
-            additionalOptions: {
-              'apiKey':
-                  'TIHbKh1ipYKEv5heVCkc', // <-- Ganti dengan key yang tadi disalin
-            },
+              urlTemplate:
+                  'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}{r}.png?key={apiKey}',
+              additionalOptions: const {
+                'apiKey':
+                    'TIHbKh1ipYKEv5heVCkc', // <-- Ganti dengan key yang valid
+              },
             ),
           ],
         ),
