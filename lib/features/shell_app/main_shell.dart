@@ -59,7 +59,7 @@ class MainShell extends StatelessWidget {
     if (location.startsWith('/home')) {
       return 0;
     }
-    if (location.startsWith('/data-tematik')) {
+    if (location.startsWith('/skpd')) {
       return 1;
     }
     if (location.startsWith('/user')) {
@@ -75,7 +75,7 @@ class MainShell extends StatelessWidget {
         context.go('/home');
         break;
       case 1:
-        context.go('/data-tematik');
+        context.go('/skpd');
         break;
       case 2:
         context.go('/user');

@@ -10,7 +10,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       // AppBar dibuat lebih sederhana atau bisa dihapus jika tidak perlu
       // Menggunakan SafeArea untuk menghindari intrusi sistem (misalnya status bar)
       body: SafeArea(
@@ -74,7 +74,10 @@ class HomeScreen extends StatelessWidget {
         TextButton(
           onPressed: () {
             if (title == 'Peta') {
-              context.go('/map-full');
+              context.push('/map-full');
+            }
+            else if(title == 'Tematik') {
+              context.push('/tematik-detail');
             }
           },
           child: Text(
