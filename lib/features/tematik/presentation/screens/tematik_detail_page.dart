@@ -1,18 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-// Data model untuk setiap item tematik
-class TematikItem {
-  final String title;
-  final String description;
-  final String imageAsset;
-
-  TematikItem({
-    required this.title,
-    required this.description,
-    required this.imageAsset,
-  });
-}
+import 'package:onelandscape/features/tematik/data/models/tematik_model.dart'; // Import Model dari tematik_model.dart
 
 // Halaman utama yang menampilkan daftar tematik
 class DaftarTematikScreen extends StatelessWidget {
@@ -20,12 +8,12 @@ class DaftarTematikScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Daftar data tematik, bisa diambil dari API nantinya
+    // Daftar data tematik, bisa diambil dari API nantinya(Sementara Local)
     final List<TematikItem> tematikItems = [
       TematikItem(
         title: 'Bencana & Konservasi',
         description: 'Deskripsi',
-        imageAsset: 'assets/images/disaster.png', // Pastikan path aset benar
+        imageAsset: 'assets/images/disaster.png',
       ),
       TematikItem(
         title: 'Fisik & Lingkungan',
@@ -44,6 +32,7 @@ class DaftarTematikScreen extends StatelessWidget {
       ),
     ];
 
+    // Widget untuk membuat daftar tematik
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -51,7 +40,7 @@ class DaftarTematikScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => context.go('/home'), // Kembali ke halaman sebelumnya
+          onPressed: () => context.go('/home'),
         ),
         title: const Text(
           'Daftar Tematik',
@@ -66,21 +55,17 @@ class DaftarTematikScreen extends StatelessWidget {
           return _buildTematikCard(context, item);
         },
       ),
+
+      //Button Tambah
       floatingActionButton: Padding(
-        // 1. Bungkus dengan Padding untuk memberi jarak dari bawah
-        padding: const EdgeInsets.only(
-          bottom: 30.0,
-          right: 15.0
-        ), // Atur jarak sesuai kebutuhan
+        padding: const EdgeInsets.only(bottom: 30.0, right: 15.0),
         child: FloatingActionButton(
           onPressed: () {
-            // Aksi untuk menambah data baru
             context.push('/tematik-data');
           },
           backgroundColor: Colors.teal[300],
           elevation: 4,
 
-          // 2. Gunakan CircleBorder() untuk memastikan bentuknya bulat sempurna
           shape: const CircleBorder(),
 
           child: const Icon(Icons.add, color: Colors.white),
@@ -95,7 +80,7 @@ class DaftarTematikScreen extends StatelessWidget {
   // Widget untuk membuat satu kartu item tematik
   Widget _buildTematikCard(BuildContext context, TematikItem item) {
     return Card(
-      color: Colors.white24,
+      color: Colors.white12,
       margin: const EdgeInsets.only(bottom: 25.0),
       elevation: 2.5,
       shadowColor: Colors.black.withOpacity(0.1),
@@ -115,7 +100,6 @@ class DaftarTematikScreen extends StatelessWidget {
         ),
         trailing: Image.asset(item.imageAsset, width: 60, height: 60),
         onTap: () {
-          // Navigasi ke halaman detail tanpa mengirim parameter
           context.push('/tematik-detail');
         },
       ),

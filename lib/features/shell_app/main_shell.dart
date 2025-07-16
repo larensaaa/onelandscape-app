@@ -39,7 +39,7 @@ class MainShell extends StatelessWidget {
             currentIndex: _calculateSelectedIndex(context),
             onTap: (index) => _onItemTapped(index, context),
             selectedItemColor: Colors.black, // warna icon aktif
-            unselectedItemColor: Colors.black12, // warna icon tidak aktif
+            unselectedItemColor: Colors.grey, // warna icon tidak aktif
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
               BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'SKPD'),
