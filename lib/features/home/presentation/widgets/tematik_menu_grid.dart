@@ -5,8 +5,13 @@ import 'package:go_router/go_router.dart';
 class TematikMenuItem {
   final String title;
   final String iconAsset;
+  final String route;
 
-  TematikMenuItem({required this.title, required this.iconAsset});
+  TematikMenuItem({
+    required this.title,
+    required this.iconAsset,
+    required this.route,
+  });
 }
 
 class TematikMenuGrid extends StatelessWidget {
@@ -14,31 +19,36 @@ class TematikMenuGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 2. Gunakan data model untuk daftar menu yang lebih terstruktur
     final List<TematikMenuItem> menuItems = [
       TematikMenuItem(
         title: 'Bencana & Konservasi',
         iconAsset: 'assets/images/disaster.png',
+        route: '/map-full',
       ),
       TematikMenuItem(
         title: 'Fisik & Lingkungan',
         iconAsset: 'assets/images/environmentalism.png',
+        route: '/map-full',
       ),
       TematikMenuItem(
         title: 'Infrastruktur',
         iconAsset: 'assets/images/infrastruktur.png',
+        route: '/map-full',
       ),
       TematikMenuItem(
         title: 'Keanekaragaman Hayati',
         iconAsset: 'assets/images/wild-animals.png',
+        route: '/map-full',
       ),
       TematikMenuItem(
         title: 'Parawisata',
         iconAsset: 'assets/images/travel.png',
+        route: '/map-full',
       ),
       TematikMenuItem(
         title: 'Potensi SDA   ',
         iconAsset: 'assets/images/earth.png',
+        route: '/map-full',
       ),
     ];
 
@@ -49,40 +59,34 @@ class TematikMenuGrid extends StatelessWidget {
         crossAxisCount: 3,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 1.0, // Membuat item menjadi persegi
+        childAspectRatio: 1.0,
       ),
       itemCount: menuItems.length,
       itemBuilder: (context, index) {
         final item = menuItems[index];
         return InkWell(
           onTap: () {
-            // 3. Tambahkan navigasi ke halaman detail dengan parameter
-            context.go('/tematik-detail/${item.title}');
+            context.push(item.route);
           },
-          borderRadius: BorderRadius.circular(
-            12,
-          ), // Agar efek ripple sesuai bentuk
+          borderRadius: BorderRadius.circular(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
                 child: Container(
                   child: Center(
-                    // 4. Gunakan ikon dari data model
-                    child: Image.asset(
-                      item.iconAsset,
-                      fit: BoxFit
-                          .contain, // Memastikan gambar pas di dalam container
-                    ),
+                    child: Image.asset(item.iconAsset, fit: BoxFit.contain),
                   ),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 item.title,
-                style: const TextStyle(fontSize: 8.2, fontWeight: FontWeight.w600), 
+                style: const TextStyle(
+                  fontSize: 8.2,
+                  fontWeight: FontWeight.w600,
+                ),
                 textAlign: TextAlign.center,
-                
               ),
             ],
           ),

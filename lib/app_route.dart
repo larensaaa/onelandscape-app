@@ -6,7 +6,8 @@ import 'features/shell_app/main_shell.dart';
 import 'features/skpd/presentation/screens/skpd_screen.dart';
 import 'features/tematik/presentation/screens/tematik_detail_page.dart';
 import 'features/user/presentation/screens/user_screen.dart';
-import 'features/tematik_crud/presentation/screens/tematik_data_page.dart';
+import 'features/tematik/presentation/screens/tambah_edit_tematik_screen.dart';
+
 // Impor juga halaman daftar tematik jika belum ada
 
 
@@ -26,8 +27,8 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const DaftarTematikScreen(),
     ),
     GoRoute(
-      path: '/tematik-data',
-      builder: (context, state) => const TematikDataPage(),
+      path: '/tematik-tambah-edit',
+      builder: (context, state) => const TambahEditTematikScreen(),
     ),
     // ShellRoute dengan halaman-halaman utama
     ShellRoute(
