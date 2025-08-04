@@ -82,7 +82,7 @@ class _TambahEditTematikScreenState extends State<TambahEditTematikScreen> {
               ? 'Tambah Data Tematik'
               : 'Edit Data Tematik',
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.grey,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -121,7 +121,7 @@ class _TambahEditTematikScreenState extends State<TambahEditTematikScreen> {
                 ElevatedButton(
                   onPressed: _simpan,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),

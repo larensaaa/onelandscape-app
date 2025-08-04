@@ -4,17 +4,67 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import '../../data/models/map_model.dart';
+import 'package:onelandscape/features/category/data/models/category_model.dart';
+import 'package:onelandscape/features/category/data/repositories/category_repository.dart';
+import '../../data/repositories/map_repository.dart';
 
 class MapProvider extends ChangeNotifier {
+  final MapRepository _mapRepository = MapRepository();
   final MapController mapController = MapController();
+
+  // State
+  List<LocationData> _locations = [];
+  List<AreaData> _areas = [];
+  List<Category> _categories = [];
+
+
+  bool _isLoading = false;
+  String? _errorMessage;
   bool _isDrawing = false;
   final List<latlong.LatLng> _drawingPoints = [];
   dynamic _selectedItem;
 
+  // Getters
+  List<LocationData> get locations => _locations;
+  List<AreaData> get areas => _areas;
+  List<Category> get categories => _categories; 
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
   bool get isDrawing => _isDrawing;
   List<latlong.LatLng> get drawingPoints => _drawingPoints;
   dynamic get selectedItem => _selectedItem;
 
+  // --- FUNGSI API ---
+  Future<void> fetchMapData() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final results = await Future.wait([
+        _mapRepository.getLocations(),
+        _mapRepository.getAreas(),
+         CategoryRepository().getCategories(),
+      ]);
+      _locations = results[0] as List<LocationData>;
+      _areas = results[1] as List<AreaData>;
+      _categories = results[2] as List<Category>;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // (Fungsi CRUD untuk Location & Area)
+  Future<void> addLocation(LocationData location) async { /* ... */ }
+  Future<void> updateLocation(int id, LocationData location) async { /* ... */ }
+  Future<void> deleteLocation(int id) async { /* ... */ }
+  Future<void> addArea(AreaData area) async { /* ... */ }
+  Future<void> updateArea(int id, AreaData area) async { /* ... */ }
+  Future<void> deleteArea(int id) async { /* ... */ }
+
+  // --- FUNGSI INTERAKSI UI ---
   void toggleDrawingMode() {
     _isDrawing = !_isDrawing;
     _drawingPoints.clear();
@@ -39,6 +89,7 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- FUNGSI BANTUAN PETA ---
   void moveCameraToArea(AreaData area) {
     if (area.coordinates.isNotEmpty) {
       final bounds = LatLngBounds.fromPoints(area.coordinates);
@@ -46,21 +97,6 @@ class MapProvider extends ChangeNotifier {
         bounds: bounds,
         padding: const EdgeInsets.all(40.0),
       ));
-    }
-  }
-
-  Future<void> saveArea({
-    required BuildContext context,
-    required Function(String, List<latlong.LatLng>)? onAreaSubmit,
-  }) async {
-    if (_drawingPoints.length < 3) return;
-    if (onAreaSubmit == null) return;
-    final areaName = await _showNameInputDialog(context);
-    if (areaName != null && areaName.isNotEmpty) {
-      onAreaSubmit(areaName, List.from(_drawingPoints));
-      _isDrawing = false;
-      _drawingPoints.clear();
-      notifyListeners();
     }
   }
 
@@ -103,6 +139,28 @@ class MapProvider extends ChangeNotifier {
 
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  // --- FUNGSI BARU UNTUK MENYIMPAN AREA YANG DIGAMBAR ---
+  Future<void> submitDrawnArea(BuildContext context) async {
+    if (_drawingPoints.length < 3) return;
+    
+    final areaName = await _showNameInputDialog(context);
+    if (areaName != null && areaName.isNotEmpty) {
+      final newArea = AreaData(
+        id: 0, // ID akan di-generate oleh backend
+        name: areaName,
+        description: '', // Bisa ditambahkan jika perlu
+        coordinates: List.from(_drawingPoints),
+        color: Colors.green, // Warna default untuk area baru
+      );
+      
+      await addArea(newArea); // Panggil fungsi addArea untuk mengirim ke API
+      
+      _isDrawing = false;
+      _drawingPoints.clear();
+      notifyListeners();
+    }
   }
 
   Future<String?> _showNameInputDialog(BuildContext context) {

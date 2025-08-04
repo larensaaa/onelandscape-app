@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
-import '../widgets/login_form.dart';
+import 'package:go_router/go_router.dart';
+import '../widgets/register_form.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatelessWidget {
+  const RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          // Kembali ke halaman login
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -20,16 +30,14 @@ class LoginScreen extends StatelessWidget {
                   child: ClipOval(
                     child: Image.asset(
                       'assets/images/gis.png',
-                      width: 150,
+                      width: 120,
                       height: 120,
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-
-                // Teks Sambutan
                 const Text(
-                  'Selamat Datang',
+                  'Buat Akun Baru',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -38,20 +46,17 @@ class LoginScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Masuk ke akun Anda untuk melanjutkan',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w700,
-                  ),
+                  'Isi data Anda untuk memulai',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 40),
-                // Form Login
+
+                // Form Register
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.0),
-                  // --- PERBAIKAN DI SINI: Hapus tanda komentar ---
-                  child: LoginForm(),
+                  child: RegisterForm(),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),

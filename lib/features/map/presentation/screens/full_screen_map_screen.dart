@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:provider/provider.dart';
+import 'package:onelandscape/features/auth/presentation/providers/auth_provider.dart';
 import '../../data/models/map_model.dart';
 import '../providers/map_provider.dart';
 import '../widgets/reusable_map_widget.dart';
@@ -13,38 +14,33 @@ class FullScreenMapScreen extends StatefulWidget {
 }
 
 class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
-  final List<LocationData> _locations = [];
-  final List<AreaData> _areas = [];
-  latlong.LatLng? _tappedPoint;
   late MapProvider _mapProvider;
   final TextEditingController _searchController = TextEditingController();
+  latlong.LatLng? _tappedPoint;
 
   @override
   void initState() {
     super.initState();
     _mapProvider = MapProvider();
-    _loadInitialData();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _mapProvider.fetchMapData();
+    });
   }
 
-  void _loadInitialData() {
-    _locations.add(LocationData(id: 1, name: 'Politeknik Negeri Banjarmasin', position: const latlong.LatLng(-3.296332, 114.582371), icon: Icons.school, color: Colors.blue.shade700));
-    _locations.add(LocationData(id: 2, name: 'Duta Mall Banjarmasin', position: const latlong.LatLng(-3.322712, 114.602978), icon: Icons.store, color: Colors.red.shade700));
-    _areas.add(AreaData(id: 1, name: 'Area Poliban', coordinates: const [latlong.LatLng(-3.297022, 114.581007), latlong.LatLng(-3.296186, 114.581442), latlong.LatLng(-3.295806, 114.581378), latlong.LatLng(-3.294864, 114.582134), latlong.LatLng(-3.294671, 114.582080), latlong.LatLng(-3.295571, 114.583019), latlong.LatLng(-3.295854, 114.583223), latlong.LatLng(-3.297456, 114.581447), latlong.LatLng(-3.297022, 114.581007)], color: Colors.blue));
-    setState(() {});
-  }
+  // --- HANDLER UNTUK AKSI DARI UI ---
 
   void _handleMapTap(latlong.LatLng point) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userRole = authProvider.user?.userLevel?.name ?? 'user';
+    if (!['admin', 'supervisor', 'user'].contains(userRole)) return;
+    
     setState(() => _tappedPoint = point);
     _showAddLocationDialog(point);
   }
 
-  void _handleAreaSubmit(String name, List<latlong.LatLng> coordinates) {
-    setState(() {
-      final newId = _areas.isEmpty ? 1 : _areas.map((a) => a.id).reduce((a, b) => a > b ? a : b) + 1;
-      _areas.add(AreaData(id: newId, name: name, coordinates: coordinates, color: Colors.green));
-    });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Area "$name" berhasil disimpan!')));
-  }
+  // --- FUNGSI _handleAreaSubmit SUDAH DIHAPUS ---
+  // Logikanya sekarang ada di dalam MapProvider.submitDrawnArea
 
   void _handleLocationLongPress(LocationData location) {
     _showEditDeleteOptions(item: location);
@@ -55,35 +51,42 @@ class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
     _showEditDeleteOptions(item: area);
   }
 
+  // --- WIDGET DIALOG DAN MENU ---
   void _showEditDeleteOptions({required dynamic item}) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userRole = authProvider.user?.userLevel?.name ?? 'user';
+
+    if (item is AreaData && !['admin', 'supervisor'].contains(userRole)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hanya admin atau supervisor yang bisa mengubah area.')));
+      return;
+    }
+    
     showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return Wrap(
-          children: <Widget>[
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Edit'),
-              onTap: () {
-                Navigator.pop(context);
-                if (item is LocationData) {
-                  _showAddLocationDialog(item.position, existingLocation: item);
-                } else if (item is AreaData) {
-                  _showEditAreaDialog(item);
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete),
-              title: const Text('Hapus'),
-              onTap: () {
-                Navigator.pop(context);
-                _confirmDelete(item);
-              },
-            ),
-          ],
-        );
-      },
+      builder: (context) => Wrap(
+        children: <Widget>[
+          ListTile(
+            leading: const Icon(Icons.edit),
+            title: const Text('Edit'),
+            onTap: () {
+              Navigator.pop(context);
+              if (item is LocationData) {
+                _showAddLocationDialog(item.position, existingLocation: item);
+              } else if (item is AreaData) {
+                _showEditAreaDialog(item);
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete),
+            title: const Text('Hapus'),
+            onTap: () {
+              Navigator.pop(context);
+              _confirmDelete(item);
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -100,10 +103,14 @@ class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
             child: const Text("Simpan"),
             onPressed: () {
               if (controller.text.isNotEmpty) {
-                final index = _areas.indexWhere((a) => a.id == area.id);
-                if (index != -1) {
-                  setState(() => _areas[index] = AreaData(id: area.id, name: controller.text, coordinates: area.coordinates, color: area.color));
-                }
+                final updatedArea = AreaData(
+                  id: area.id,
+                  name: controller.text,
+                  description: area.description,
+                  coordinates: area.coordinates,
+                  color: area.color,
+                );
+                _mapProvider.updateArea(area.id, updatedArea);
               }
               Navigator.pop(context);
             },
@@ -124,13 +131,11 @@ class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
           TextButton(
             child: const Text('Hapus', style: TextStyle(color: Colors.red)),
             onPressed: () {
-              setState(() {
-                if (item is LocationData) {
-                  _locations.removeWhere((loc) => loc.id == item.id);
-                } else if (item is AreaData) {
-                  _areas.removeWhere((a) => a.id == item.id);
-                }
-              });
+              if (item is LocationData) {
+                _mapProvider.deleteLocation(item.id);
+              } else if (item is AreaData) {
+                _mapProvider.deleteArea(item.id);
+              }
               Navigator.pop(context);
             },
           ),
@@ -142,84 +147,104 @@ class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
   void _showAddLocationDialog(latlong.LatLng point, {LocationData? existingLocation}) {
     final titleController = TextEditingController(text: existingLocation?.name ?? '');
     final descController = TextEditingController(text: existingLocation?.description ?? '');
-    String selectedCategory = 'Tempat Wisata';
+    String? selectedCategory;
+
+    final categories = _mapProvider.categories;
+
     showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text(existingLocation == null ? "Tambah Lokasi Baru" : "Edit Lokasi"),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Koordinat: ${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}"),
-                    const SizedBox(height: 12),
-                    TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Judul')),
-                    const SizedBox(height: 8),
-                    TextField(controller: descController, decoration: const InputDecoration(labelText: 'Keterangan')),
-                    const SizedBox(height: 8),
-                    DropdownButton<String>(
-                      value: selectedCategory,
-                      isExpanded: true,
-                      items: ['Tempat Wisata', 'Restoran', 'Kantor Polisi', 'Rumah Sakit', 'Lainnya']
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value)))
-                          .toList(),
-                      onChanged: (String? newValue) => setDialogState(() => selectedCategory = newValue!),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Batal")),
-                TextButton(
-                  child: const Text("Simpan"),
-                  onPressed: () {
-                    if (titleController.text.isNotEmpty) {
-                      setState(() {
-                        if (existingLocation != null) {
-                          final index = _locations.indexWhere((loc) => loc.id == existingLocation.id);
-                          if (index != -1) {
-                            _locations[index] = LocationData(id: existingLocation.id, name: titleController.text, description: descController.text, position: existingLocation.position);
-                          }
-                        } else {
-                          final newId = _locations.isEmpty ? 1 : _locations.map((l) => l.id).reduce((a, b) => a > b ? a : b) + 1;
-                          _locations.add(LocationData(id: newId, name: titleController.text, description: descController.text, position: point));
-                          _tappedPoint = null;
-                        }
-                      });
-                    }
-                    Navigator.of(context).pop();
-                  },
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(existingLocation == null ? "Tambah Lokasi Baru" : "Edit Lokasi"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Koordinat: ${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}"),
+                const SizedBox(height: 12),
+                TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Judul')),
+                const SizedBox(height: 8),
+                TextField(controller: descController, decoration: const InputDecoration(labelText: 'Keterangan')),
+                const SizedBox(height: 8),
+                 DropdownButton<String>(
+                  value: selectedCategory,
+                  isExpanded: true,
+                  hint: const Text('Pilih Kategori'),
+                  items: categories // <-- Gunakan variabel 'categories'
+                      .map((category) => DropdownMenuItem<String>(value: category.name, child: Text(category.name)))
+                      .toList(),
+                  onChanged: (String? newValue) => setDialogState(() => selectedCategory = newValue),
                 ),
               ],
-            );
-          },
-        );
-      },
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Batal")),
+            TextButton(
+              child: const Text("Simpan"),
+              onPressed: () {
+                if (titleController.text.isNotEmpty) {
+                  if (existingLocation != null) {
+                    final updatedLocation = LocationData(
+                      id: existingLocation.id,
+                      name: titleController.text,
+                      description: descController.text,
+                      position: existingLocation.position,
+                      icon: existingLocation.icon,
+                      color: existingLocation.color,
+                    );
+                    _mapProvider.updateLocation(existingLocation.id, updatedLocation);
+                  } else {
+                    final newLocation = LocationData(
+                      id: 0,
+                      name: titleController.text,
+                      description: descController.text,
+                      position: point,
+                      icon: Icons.location_on,
+                      color: Colors.red,
+                    );
+                    _mapProvider.addLocation(newLocation);
+                    setState(() => _tappedPoint = null);
+                  }
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final userRole = authProvider.user?.userLevel?.name ?? 'user';
+
     return ChangeNotifierProvider.value(
       value: _mapProvider,
       child: Consumer<MapProvider>(
         builder: (context, mapProvider, child) {
+          final bool canDrawArea = ['admin', 'supervisor'].contains(userRole);
+
           return Scaffold(
             body: Stack(
               children: [
-                ReusableMapWidget(
-                  locations: _locations,
-                  areas: _areas,
-                  selectedLocationMarker: _tappedPoint,
-                  onMapTap: _handleMapTap,
-                  onAreaSubmit: _handleAreaSubmit,
-                  onLocationLongPress: _handleLocationLongPress,
-                  onAreaLongPress: _handleAreaLongPress,
-                ),
+                if (mapProvider.isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (mapProvider.errorMessage != null)
+                  Center(child: Text(mapProvider.errorMessage!))
+                else
+                  ReusableMapWidget(
+                    locations: mapProvider.locations,
+                    areas: mapProvider.areas,
+                    selectedLocationMarker: _tappedPoint,
+                    onMapTap: _handleMapTap,
+                    // onAreaSubmit sudah dihapus karena tidak perlu lagi
+                    onLocationLongPress: _handleLocationLongPress,
+                    onAreaLongPress: _handleAreaLongPress,
+                  ),
                 _buildDetailsSheet(mapProvider),
                 Positioned(
                   bottom: MediaQuery.of(context).size.height * 0.25 + 16,
@@ -228,8 +253,10 @@ class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       FloatingActionButton(onPressed: () => mapProvider.determinePositionAndMove(context), tooltip: 'Cari Lokasi Saya', heroTag: 'myLocationButton', child: const Icon(Icons.my_location)),
-                      const SizedBox(height: 10),
-                      FloatingActionButton(onPressed: mapProvider.toggleDrawingMode, tooltip: mapProvider.isDrawing ? 'Batal Menggambar' : 'Gambar Area', heroTag: 'drawButton', backgroundColor: mapProvider.isDrawing ? Colors.red : Theme.of(context).colorScheme.secondary, child: Icon(mapProvider.isDrawing ? Icons.close : Icons.edit)),
+                      if (canDrawArea) ...[
+                        const SizedBox(height: 10),
+                        FloatingActionButton(onPressed: mapProvider.toggleDrawingMode, tooltip: 'Gambar Area', heroTag: 'drawButton', backgroundColor: mapProvider.isDrawing ? Colors.red : Theme.of(context).colorScheme.secondary, child: Icon(mapProvider.isDrawing ? Icons.close : Icons.edit)),
+                      ],
                     ],
                   ),
                 ),
@@ -261,11 +288,11 @@ class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
                 onSubmitted: (value) => provider.searchAndMove(context, value),
               ),
               const SizedBox(height: 12),
-              ..._locations.map((loc) {
+              ...provider.locations.map((loc) {
                 return ListTile(
                   leading: Icon(loc.icon, color: loc.color),
                   title: Text(loc.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text("Kalimantan Selatan"),
+                  subtitle: Text(loc.description),
                   onTap: () => provider.mapController.move(loc.position, 16.0),
                 );
               }).toList(),
