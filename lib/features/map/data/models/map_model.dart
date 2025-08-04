@@ -62,16 +62,15 @@ class AreaData {
   factory AreaData.fromJson(Map<String, dynamic> json) {
     List<latlong.LatLng> coordsList = [];
     if (json['coordinates'] is List) {
-      // --- PERBAIKAN DI SINI ---
-      // Ubah logika untuk membaca List of Map ({lat: ..., lng: ...})
+     
       coordsList = (json['coordinates'] as List).map((coord) {
-        // Pastikan coord adalah Map sebelum diakses
+        
         if (coord is Map) {
           final lat = double.tryParse(coord['lat']?.toString() ?? '0.0') ?? 0.0;
           final lng = double.tryParse(coord['lng']?.toString() ?? '0.0') ?? 0.0;
           return latlong.LatLng(lat, lng);
         }
-        return latlong.LatLng(0,0); // Fallback jika format tidak sesuai
+        return latlong.LatLng(0,0); 
       }).toList();
     }
 
@@ -88,7 +87,7 @@ class AreaData {
   Map<String, dynamic> toJson() => {
         'name': name,
         'description': description,
-        // Sesuaikan format saat mengirim ke API
+      
         'coordinates': coordinates.map((p) => {'lat': p.latitude, 'lng': p.longitude}).toList(),
       };
 }

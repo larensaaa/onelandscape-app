@@ -241,7 +241,7 @@ class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
                     areas: mapProvider.areas,
                     selectedLocationMarker: _tappedPoint,
                     onMapTap: _handleMapTap,
-                    // onAreaSubmit sudah dihapus karena tidak perlu lagi
+                   
                     onLocationLongPress: _handleLocationLongPress,
                     onAreaLongPress: _handleAreaLongPress,
                   ),
