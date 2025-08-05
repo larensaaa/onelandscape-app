@@ -15,14 +15,14 @@ class AuthRepository {
         data: {'email': email, 'password': password},
       );
 
+      // -- PRINT 1: Lihat data mentah dari /login --
+      print('DEBUG REPO (login): Raw user data from /login -> ${response.data['user']}');
+
       final token = response.data['authorisation']['token'];
       await _storage.saveToken(token);
       return User.fromJson(response.data['user']);
     } on DioException catch (e) {
-
-      throw Exception(
-        'Gagal login: ${e.response?.data['message'] ?? e.message}',
-      );
+      throw Exception('Gagal login: ${e.response?.data['message'] ?? e.message}');
     }
   }
 
@@ -37,18 +37,16 @@ class AuthRepository {
         '/register',
         data: {'name': name, 'email': email, 'password': password},
       );
-
-      print('--- DEBUG REGISTER RESPONSE ---');
-      print(response.data);
-      print('--- END DEBUG ---');
-
       
-     
+      // Token handling yang benar untuk register (jika API mengembalikannya)
+      final tokenData = response.data['authorisation'];
+      if (tokenData != null && tokenData['token'] != null) {
+        await _storage.saveToken(tokenData['token']);
+      }
+      
       return User.fromJson(response.data['user']);
     } on DioException catch (e) {
-      throw Exception(
-        'Gagal register: ${e.response?.data['message'] ?? e.message}',
-      );
+      throw Exception('Gagal register: ${e.response?.data['message'] ?? e.message}');
     }
   }
 
@@ -56,6 +54,10 @@ class AuthRepository {
   Future<User> getProfile() async {
     try {
       final response = await _dio.get('/me');
+      
+      // -- PRINT 2: Lihat data mentah dari /me --
+      print('DEBUG REPO (getProfile): Raw user data from /me -> ${response.data['user']}');
+      
       return User.fromJson(response.data['user']);
     } on DioException catch (e) {
       throw Exception('Gagal mendapatkan profil: ${e.message}');
@@ -67,7 +69,6 @@ class AuthRepository {
     try {
       await _dio.post('/logout');
     } finally {
-      // Selalu hapus token dari perangkat, meskipun request API gagal
       await _storage.deleteToken();
     }
   }

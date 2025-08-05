@@ -1,31 +1,35 @@
+// File: lib/main.dart (PASTIKAN SEPERTI INI)
+
 import 'package:flutter/material.dart';
-import 'package:onelandscape/features/auth/presentation/providers/auth_provider.dart'; // Sesuaikan path
+import 'package:onelandscape/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
-import 'core/routing/app_route.dart'; // Sesuaikan path
+import 'package:onelandscape/core/routing/app_route.dart';
 
 void main() {
-  // Anda harus MEMBUNGKUS MyApp DENGAN Provider,
-  // lalu HASILNYA dimasukkan ke dalam runApp.
+  final AuthProvider authProvider = AuthProvider();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthProvider(),
-      child: const MyApp(),
+    ChangeNotifierProvider.value(
+      value: authProvider,
+      child: MyApp(authProvider: authProvider),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AuthProvider authProvider;
+
+  const MyApp({super.key, required this.authProvider});
 
   @override
   Widget build(BuildContext context) {
+    final appRouter = AppRouter(authProvider);
+
     return MaterialApp.router(
-      routerConfig: router,
+      routerConfig: appRouter.router,
       title: 'Mobile GIS',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
+      theme: ThemeData(primarySwatch: Colors.green),
     );
   }
 }

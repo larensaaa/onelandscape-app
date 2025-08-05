@@ -22,27 +22,42 @@ class _LoginFormState extends State<LoginForm> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+ Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-
+    
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    print('DEBUG: AuthProvider DIGUNAKAN di LoginForm -> hashCode: ${authProvider.hashCode}');
 
     bool isSuccess = await authProvider.login(
       _emailController.text,
       _passwordController.text,
     );
 
-    if (isSuccess && context.mounted) {
+    if (context.mounted && isSuccess) {
       context.go('/home');
     } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar( 
         SnackBar(
           content: Text(
             authProvider.errorMessage ?? 'Email atau password salah.',
           ),
-          backgroundColor: Colors.red,
         ),
       );
+    }
+
+    if (context.mounted) {
+      if (isSuccess) {
+        context.go('/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.errorMessage ?? 'Email atau password salah.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -106,8 +121,8 @@ class _LoginFormState extends State<LoginForm> {
                 child: const Text(
                   'Lupa password?',
                   style: TextStyle(
-                    fontSize: 12, // Atur ukuran font
-                    color: Color.fromRGBO(135, 206, 250, 0.9), 
+                    fontSize: 12, 
+                    color: Color.fromRGBO(135, 206, 250, 0.9),
                     fontWeight: FontWeight.w700,
                   ),
                 ),

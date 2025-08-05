@@ -31,11 +31,19 @@ class MapRepository {
     }
   }
 
+ // features/map/data/repositories/map_repository.dart
+
   Future<void> createLocation(LocationData location) async {
     try {
       await _dio.post('/locations', data: location.toJson());
-    } catch (e) {
-      throw Exception('Gagal membuat lokasi baru');
+    } on DioException catch (e) {
+      print('--- DEBUG: 422 VALIDATION ERROR ---');
+      if (e.response != null) {
+        print(e.response!.data);
+      }
+      print('--- END DEBUG ---');
+      // ----------------------------------------------------
+      throw Exception('Gagal membuat lokasi baru: ${e.response?.data['message'] ?? e.message}');
     }
   }
   
@@ -65,7 +73,6 @@ class MapRepository {
 
   Future<void> updateArea(int id, AreaData area) async {
     try {
-      // API hanya butuh nama dan deskripsi untuk update
       await _dio.put('/areas/$id', data: {
         'name': area.name,
         'description': area.description
