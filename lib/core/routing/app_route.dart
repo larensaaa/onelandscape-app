@@ -6,7 +6,7 @@ import 'package:onelandscape/features/home/presentation/screens/home_screen.dart
 import 'package:onelandscape/features/map/presentation/screens/full_screen_map_screen.dart';
 import 'package:onelandscape/features/shell_app/main_shell.dart';
 import 'package:onelandscape/features/tematik/data/models/tematik_model.dart';
-// import 'package:onelandscape/features/tematik/presentation/screens/tematik_detail_page.dart';
+import 'package:onelandscape/features/tematik/presentation/screens/tematik_detail_page.dart';
 // import 'package:onelandscape/features/tematik/presentation/screens/daftar_tematik_screen.dart';
 import 'package:onelandscape/features/tematik/presentation/screens/tambah_edit_tematik_screen.dart';
 import 'package:onelandscape/features/auth/presentation/screens/register_screen.dart';
@@ -42,7 +42,10 @@ class AppRouter {
           path: '/map-full',
           builder: (context, state) => const FullScreenMapScreen(),
         ),
-
+        GoRoute(
+          path: '/tematik-detail',
+          builder: (context, state) => const DaftarTematikScreen(),
+        ),
         GoRoute(
           path: '/tematik-tambah-edit',
           builder: (context, state) {

@@ -179,7 +179,7 @@ class _FullScreenMapScreenState extends State<FullScreenMapScreen> {
           children: const [
             Icon(Icons.save, color: Colors.blue),
             SizedBox(width: 8),
-            Text("Simpan Area/Polygon"),
+            Text("Simpan \nArea/Polygon"),
           ],
         ),
         content: Form(
