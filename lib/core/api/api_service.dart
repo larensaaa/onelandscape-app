@@ -10,8 +10,8 @@ class ApiService {
       : _dio = Dio(
           BaseOptions(
             baseUrl: 'https://onelandscapekalsel.vps-poliban.my.id/api',
-            connectTimeout: const Duration(seconds: 15),
-            receiveTimeout: const Duration(seconds: 15),
+            connectTimeout: const Duration(seconds: 60),
+            receiveTimeout: const Duration(seconds: 60),
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
