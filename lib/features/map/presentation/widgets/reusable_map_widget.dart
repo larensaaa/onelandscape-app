@@ -61,7 +61,31 @@ class ReusableMapWidget extends StatelessWidget {
             bool polygonTapped = false;
             for (final area in areas.reversed) {
               if (_isPointInPolygon(latlng, area.coordinates)) {
-                provider.selectItem(area);
+                // geser kamera sedikit agar popup info tidak overflow di bottom
+                if (area.coordinates.isNotEmpty) {
+                  final midpoint =
+                      area.coordinates[area.coordinates.length ~/ 2];
+                  const double offsetLat = 0.003;
+                  final target = latlong.LatLng(
+                    midpoint.latitude - offsetLat,
+                    midpoint.longitude,
+                  );
+                  double zoom = 16.0;
+                  try {
+                    final dynamic ctrl = provider.mapController;
+                    final dynamic z = ctrl?.zoom;
+                    if (z is num) zoom = z.toDouble();
+                    // bergerak ke target
+                    ctrl?.move(target, zoom);
+                  } catch (_) {
+                    // fallback: ignore
+                  }
+                }
+                // beri waktu sedikit agar map sudah bergerak, lalu tampilkan info sebagai bottom sheet
+                Future.delayed(
+                  const Duration(milliseconds: 150),
+                  () => _showItemBottomSheet(context, provider, area),
+                );
                 polygonTapped = true;
                 break;
               }
@@ -86,36 +110,69 @@ class ReusableMapWidget extends StatelessWidget {
         ),
         children: [
           TileLayer(
-            urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={apiKey}',
+            urlTemplate:
+                'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={apiKey}',
             additionalOptions: {'apiKey': 'TIHbKh1ipYKEv5heVCkc'},
           ),
           PolygonLayer(
-            polygons: areas.map((area) => Polygon(
-                  points: area.coordinates,
-                  color: area.color.withAlpha(77),
-                  borderColor: area.color,
-                  borderStrokeWidth: 2,
-                )).toList(),
+            polygons: areas
+                .map(
+                  (area) => Polygon(
+                    points: area.coordinates,
+                    color: area.color.withAlpha(77),
+                    borderColor: area.color,
+                    borderStrokeWidth: 2,
+                  ),
+                )
+                .toList(),
           ),
           MarkerLayer(
-            markers: locations.map((loc) => Marker(
-                  point: loc.position,
-                  width: 40,
-                  height: 40,
-                  child: GestureDetector(
-                    onTap: () => provider.selectItem(loc),
-                    onLongPress: () => onLocationLongPress?.call(loc),
-                    child: Icon(loc.icon, color: loc.color, size: 40),
+            markers: locations
+                .map(
+                  (loc) => Marker(
+                    point: loc.position,
+                    width: 30,
+                    height: 30,
+                    child: GestureDetector(
+                      onTap: () async {
+                        // Geser kamera sedikit ke utara sebelum menampilkan popup supaya tidak overflow
+                        const double offsetLat = 0.003;
+                        final target = latlong.LatLng(
+                          loc.position.latitude - offsetLat,
+                          loc.position.longitude,
+                        );
+                        double zoom = 16.0;
+                        try {
+                          final dynamic ctrl = provider.mapController;
+                          final dynamic z = ctrl?.zoom;
+                          if (z is num) zoom = z.toDouble();
+                          ctrl?.move(target, zoom);
+                        } catch (_) {
+                          // ignore dan lanjut
+                        }
+                        await Future.delayed(const Duration(milliseconds: 150));
+                        _showItemBottomSheet(context, provider, loc);
+                      },
+                      onLongPress: () => onLocationLongPress?.call(loc),
+                      child: Icon(loc.icon, color: loc.color, size: 40),
+                    ),
                   ),
-                )).toList(),
+                )
+                .toList(),
           ),
           if (selectedLocationMarker != null && !provider.isDrawing)
-            MarkerLayer(markers: [
-              Marker(
-                point: selectedLocationMarker!,
-                child: const Icon(Icons.add_location_alt, color: Colors.green, size: 45),
-              ),
-            ]),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: selectedLocationMarker!,
+                  child: const Icon(
+                    Icons.add_location_alt,
+                    color: Colors.green,
+                    size: 45,
+                  ),
+                ),
+              ],
+            ),
           if (provider.isDrawing)
             MarkerLayer(
               markers: provider.drawingPoints.map((point) {
@@ -133,12 +190,14 @@ class ReusableMapWidget extends StatelessWidget {
               }).toList(),
             ),
           if (provider.isDrawing && provider.drawingPoints.isNotEmpty)
-            PolylineLayer(polylines: [
-              Polyline(points: provider.drawingPoints, color: Colors.purple, strokeWidth: 4),
-            ]),
-          if (provider.selectedItem != null)
-            MarkerLayer(
-              markers: [_buildInfoPopup(provider.selectedItem)],
+            PolylineLayer(
+              polylines: [
+                Polyline(
+                  points: provider.drawingPoints,
+                  color: Colors.purple,
+                  strokeWidth: 4,
+                ),
+              ],
             ),
         ],
       ),
@@ -160,51 +219,60 @@ class ReusableMapWidget extends StatelessWidget {
             icon: const Icon(Icons.save),
             tooltip: 'Simpan Area',
             onPressed: () => provider.submitDrawnArea(context),
-          )
+          ),
       ],
     );
   }
 
-  Marker _buildInfoPopup(dynamic item) {
-    latlong.LatLng position;
-    String name;
-    if (item is LocationData) {
-      position = item.position;
-      name = item.name;
-    } else if (item is AreaData) {
-      if (item.coordinates.length < 2) return Marker(point: latlong.LatLng(0, 0), child: Container());
-      final bounds = LatLngBounds.fromPoints(item.coordinates);
-      position = bounds.center;
-      name = item.name;
-    } else {
-      return Marker(point: latlong.LatLng(0, 0), child: Container());
-    }
-    return Marker(
-      point: position,
-      width: 150,
-      height: 50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 5)],
-            ),
-            child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-          ),
-          ClipPath(
-            clipper: _ArrowClipper(),
-            child: Container(width: 15, height: 10, color: Colors.white),
-          )
-        ],
+// Tambahkan helper untuk menampilkan info sebagai bottom sheet
+  void _showItemBottomSheet(BuildContext context, MapProvider provider, dynamic item) {
+    final String title = (item is LocationData) ? item.name : (item is AreaData ? item.name : 'Detail');
+    final String subtitle = (item is LocationData)
+        ? (item.description.isEmpty ? 'Tidak ada deskripsi' : item.description)
+        : (item is AreaData ? (item.description ?? 'Tidak ada deskripsi') : '');
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  height: 4,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(subtitle, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    child: const Text('Tutup'),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
-
-class _ArrowClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     Path path = Path();
@@ -217,4 +285,4 @@ class _ArrowClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
+
