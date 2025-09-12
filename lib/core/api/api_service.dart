@@ -19,7 +19,7 @@ class ApiService {
           ),
         ) {
 
-    // Tambahkan Interceptor untuk otomatisasi token
+    
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -40,7 +40,7 @@ class ApiService {
     );
   }
 
-  // Singleton Pattern
+
   static final ApiService _instance = ApiService._();
 
   /// Mendapatkan instance Dio yang sudah dikonfigurasi.
