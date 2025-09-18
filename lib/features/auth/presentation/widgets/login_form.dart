@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:onelandscape/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -11,39 +12,26 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
- Future<void> _handleLogin() async {
+  Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    print('DEBUG: AuthProvider DIGUNAKAN di LoginForm -> hashCode: ${authProvider.hashCode}');
 
     bool isSuccess = await authProvider.login(
-      _emailController.text,
+      _usernameController.text,
       _passwordController.text,
     );
-
-    if (context.mounted && isSuccess) {
-      context.go('/home');
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar( 
-        SnackBar(
-          content: Text(
-            authProvider.errorMessage ?? 'Email atau password salah.',
-          ),
-        ),
-      );
-    }
 
     if (context.mounted) {
       if (isSuccess) {
@@ -52,7 +40,7 @@ class _LoginFormState extends State<LoginForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              authProvider.errorMessage ?? 'Email atau password salah.',
+              authProvider.errorMessage ?? 'Username atau password salah.',
             ),
             backgroundColor: Colors.red,
           ),
@@ -65,45 +53,74 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     final bool isLoading = context.watch<AuthProvider>().isLoading;
 
-    return Container(
-      padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.email_outlined),
-                hintText: 'Email',
+    return Form(
+      key: _formKey,
+      child: Column(
+        // crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Username
+          const SizedBox(height: 20),
+          SizedBox(
+            width: 267,
+            height: 40,
+            child: TextFormField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                hintText: 'Username',
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty)
-                  return 'Email tidak boleh kosong';
-                if (!value.contains('@')) return 'Email tidak valid';
+                  return 'Username tidak boleh kosong';
                 return null;
               },
             ),
-            const SizedBox(height: 16),
-            TextFormField(
+          ),
+          const SizedBox(height: 25),
+          // Password
+          SizedBox(
+            width: 267,
+            height: 40,
+            child: TextFormField(
               controller: _passwordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.lock_outline),
+              decoration: InputDecoration(
                 hintText: 'Password',
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 18,
+                  horizontal: 16,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty)
@@ -111,106 +128,87 @@ class _LoginFormState extends State<LoginForm> {
                 return null;
               },
             ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Aksi ketika "Lupa password?" diklik
-                },
-                child: const Text(
-                  'Lupa password?',
-                  style: TextStyle(
-                    fontSize: 12, 
-                    color: Color.fromRGBO(135, 206, 250, 0.9),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size(0, 0),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: isLoading ? null : _handleLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1976D2),
-                foregroundColor: Colors.white,
-
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              icon: isLoading
-                  ? Container(
-                      width: 24,
-                      height: 24,
-                      padding: const EdgeInsets.all(2.0),
-                      child: const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 3,
-                      ),
-                    )
-                  : Image.asset(
-                      'assets/images/enter.png',
-                      width: 24,
-                      height: 24,
-                    ),
-              label: Text(
-                isLoading ? 'MEMPROSES...' : 'Masuk',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
               onPressed: () {
-                // TODO: Navigasi ke halaman register
-                context.push('/register');
+                // Aksi lupa username/passworD
               },
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                foregroundColor: const Color(0xFF1976D2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              icon: const Icon(Icons.person_add_alt_1_outlined, size: 24),
-
-              label: Text(
-                'Daftar Akun Baru',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+              child: Text(
+                'Lupa Username/Password?',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  decoration: TextDecoration.underline,
+                  color: Color(0xFF000000),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            Text.rich(
-              TextSpan(
-                text: 'Dengan masuk, Anda menyetujui ',
-                style: TextStyle(color: Colors.grey[600], fontSize: 10),
-                children: [
-                  TextSpan(
-                    text: 'Syarat & Ketentuan kami',
-                    style: TextStyle(
-                      color: const Color.fromARGB(255, 42, 132, 205),
-                      fontWeight: FontWeight.w500,
+          ),
+          const SizedBox(height: 30),
+          // Tombol Login
+          Center(
+            child: SizedBox(
+              width: 148,
+              height: 61,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromRGBO(0, 0, 0, 0.25), // #000000 25%
+                      offset: const Offset(0, 4), // X: 0, Y: 4
+                      blurRadius: 4,
+                      spreadRadius: 0,
                     ),
+                  ],
+                  border: Border.all(
+                    color: const Color(0xFF6A994E), // Outline hijau
+                    width: 2,
                   ),
-                  TextSpan(text: '.'),
-                ],
+                ),
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF386641),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                      // side dihapus, outline pakai BoxDecoration di atas
+                    ),
+                    elevation: 0, // elevation 0 agar tidak double shadow
+                    shadowColor: Colors.transparent,
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        )
+                      : Text(
+                          'Login',
+                          style: GoogleFonts.openSans(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
