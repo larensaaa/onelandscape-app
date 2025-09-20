@@ -79,6 +79,10 @@ flutter:
       - assets/images/enter.png
       - assets/images/gis.png
       - assets/images/wild-animals.png
+      - assets/images/login_form_bg.jpg
+      - assets/images/login_header_bg.jpg
+      
+
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
